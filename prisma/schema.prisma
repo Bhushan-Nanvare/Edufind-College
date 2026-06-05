@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CollegeType {
+  GOVERNMENT
+  PRIVATE
+  DEEMED
+}
+
+enum ExamType {
+  JEE_MAIN
+  JEE_ADVANCED
+  NEET
+  CAT
+  MHT_CET
+}
+
+enum CategoryType {
+  GENERAL
+  OBC
+  SC
+  ST
+}
+
+enum ApplicationStatus {
+  INTERESTED
+  APPLIED
+  GOT_ADMIT
+  REJECTED
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  reviews       Review[]
+  savedColleges SavedCollege[]
+
+  @@map("users")
+}
+
+model College {
+  id            Int         @id @default(autoincrement())
+  name          String
+  slug          String      @unique
+  city          String
+  state         String
+  type          CollegeType
+  fees          Int
+  rating        Float       @default(0)
+  description   String?
+  established   Int?
+  totalStudents Int?        @map("total_students")
+  campusSize    String?     @map("campus_size")
+  logoUrl       String?     @map("logo_url")
+  examAccepted  String      @default("") @map("exam_accepted")
+  naacGrade     String?     @map("naac_grade")
+  nirf          Int?
+  approvals     String?     @default("")
+  website       String?
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  courses       Course[]
+  placements    Placement[]
+  reviews       Review[]
+  savedColleges SavedCollege[]
+  rankCutoffs   RankCutoff[]
+
+  @@map("colleges")
+}
+
+model Course {
+  id        Int     @id @default(autoincrement())
+  name      String
+  duration  Int
+  fees      Int
+  collegeId Int     @map("college_id")
+  college   College @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+
+  @@map("courses")
+}
+
+model Placement {
+  id               Int     @id @default(autoincrement())
+  avgSalary        Int     @map("avg_salary")
+  highestSalary    Int     @map("highest_salary")
+  placementPercent Float   @map("placement_percent")
+  topRecruiters    String  @default("") @map("top_recruiters")
+  year             Int
+  collegeId        Int     @map("college_id")
+  college          College @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+
+  @@map("placements")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  text      String
+  userId    Int      @map("user_id")
+  collegeId Int      @map("college_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  college College @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model SavedCollege {
+  id        Int               @id @default(autoincrement())
+  status    ApplicationStatus @default(INTERESTED)
+  userId    Int               @map("user_id")
+  collegeId Int               @map("college_id")
+  createdAt DateTime          @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  college College @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+
+  @@map("saved_colleges")
+}
+
+model RankCutoff {
+  id          Int          @id @default(autoincrement())
+  exam        ExamType
+  category    CategoryType
+  closingRank Int          @map("closing_rank")
+  year        Int
+  collegeId   Int          @map("college_id")
+  college     College      @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+
+  @@map("rank_cutoffs")
+}
