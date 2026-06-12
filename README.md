@@ -234,4 +234,4 @@ NEXTAUTH_URL=https://your-app.vercel.app
 
 ---
 
-Built with ❤️ for the Full Stack Engineer Internship — Track B
+Built for the Full Stack Engineer Internship — Track B 
